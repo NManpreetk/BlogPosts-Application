@@ -229,10 +229,6 @@
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
     <Content Include="Helpers\Styles2.css" />
-    <Content Include="html\about.html" />
-    <Content Include="html\contact.html" />
-    <Content Include="html\index.html" />
-    <Content Include="html\post.html" />
     <Content Include="img\about-bg.jpg" />
     <Content Include="img\contact-bg.jpg" />
     <Content Include="img\home-bg.jpg" />
