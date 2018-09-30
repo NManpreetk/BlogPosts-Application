@@ -54,7 +54,7 @@ namespace WebApplication1.Migrations
                     .FirstOrDefault();
             }
 
-            if (!context.Users.Any(p => p.UserName == "admin@myblogapp.com"))
+            if (!context.Users.Any(p => p.UserName == "moderator@myblogapp.com"))
             {
                 moderatorUser = new ApplicationUser();
                 moderatorUser.UserName = "moderator@myblogapp.com";
@@ -99,10 +99,7 @@ namespace WebApplication1.Migrations
                 userManager.AddToRole(moderatorUser.Id, "Moderator");
             }
 
-            if (!userManager.IsInRole(user.Id, "User"))
-            {
-                userManager.AddToRole(user.Id, "User");
-            }
+            
         }
     }
 }

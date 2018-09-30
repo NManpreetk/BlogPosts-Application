@@ -9,6 +9,12 @@ using System.Web.Mvc;
 using WebApplication1.Models;
 using WebApplication1.Helpers;
 using System.IO;
+using PagedList;
+using PagedList.Mvc;
+using Microsoft.AspNet.Identity;
+using System.Net.Mail;
+using System.Web.Configuration;
+
 
 namespace WebApplication1.Controllers
 {
@@ -17,19 +23,41 @@ namespace WebApplication1.Controllers
         private ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: BlogPosts
-        public ActionResult Index()
+        public ActionResult Index(int? page, string searchString)
         {
-            return View(db.Posts.ToList());
+            int pageSize = 1; // display three blog posts at a time on this page
+            int pageNumber = (page ?? 1);
+
+            var postQuery = db.Posts.OrderBy(p => p.Created).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                postQuery = postQuery
+                    .Where(p => p.Title.Contains(searchString) ||
+                                p.Body.Contains(searchString) ||
+                                p.Slug.Contains(searchString) ||
+                                p.Comments.Any(t => t.Body.Contains(searchString))
+                           ).AsQueryable();
+            }
+            var postList = postQuery.ToPagedList(pageNumber, pageSize);
+            ViewBag.SearchString = searchString;
+            return View(postList);
         }
 
         // GET: BlogPosts/Details/5
         public ActionResult Details(string Slug)
         {
-            if (String.IsNullOrWhiteSpace(Slug))
+            if (Slug == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            BlogPost blogPost = db.Posts.FirstOrDefault(p => p.Slug == Slug);
+            //BlogPost blogPost = db.Posts.FirstOrDefault(p => p.Slug == Slug);
+            BlogPost blogPost = db.Posts
+                .Include(p => p.Comments.Select(t => t.Author))
+                .Where(p => p.Slug == Slug)
+                .OrderBy(p => p.Id)
+                .FirstOrDefault();
+
             if (blogPost == null)
             {
                 return HttpNotFound();
@@ -152,6 +180,31 @@ namespace WebApplication1.Controllers
             db.Posts.Remove(blogPost);
             db.SaveChanges();
             return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [Authorize]
+        public ActionResult CreateComment(string slug, string body)
+        {
+            if (slug == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            var blogPost = db.Posts
+               .Where(p => p.Slug == slug)
+               .FirstOrDefault();
+            if (blogPost == null)
+            {
+                return HttpNotFound();
+            }
+            var comment = new Comment();
+            comment.AuthorId = User.Identity.GetUserId();
+            comment.BlogPostId = blogPost.Id;
+            comment.Created = DateTime.Now;
+            comment.Body = body;
+            db.Comments.Add(comment);
+            db.SaveChanges();
+            return RedirectToAction("Details", new { slug = slug });
         }
 
         protected override void Dispose(bool disposing)

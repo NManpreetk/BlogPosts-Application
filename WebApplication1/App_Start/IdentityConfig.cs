@@ -11,6 +11,9 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using WebApplication1.Models;
+using System.Net.Mail;
+using System.Web.Configuration;
+using System.Net;
 
 namespace WebApplication1
 {
@@ -19,6 +22,7 @@ namespace WebApplication1
         public Task SendAsync(IdentityMessage message)
         {
             // Plug in your email service here to send an email.
+            //return Task.FromResult(0);
             return Task.FromResult(0);
         }
     }
@@ -43,7 +47,7 @@ namespace WebApplication1
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context) 
         {
             var manager = new ApplicationUserManager(new UserStore<ApplicationUser>(context.Get<ApplicationDbContext>()));
-            // Configure validation logic for usernames
+            // Configure validation logic for +s
             manager.UserValidator = new UserValidator<ApplicationUser>(manager)
             {
                 AllowOnlyAlphanumericUserNames = false,
@@ -106,4 +110,6 @@ namespace WebApplication1
             return new ApplicationSignInManager(context.GetUserManager<ApplicationUserManager>(), context.Authentication);
         }
     }
+    
+
 }
