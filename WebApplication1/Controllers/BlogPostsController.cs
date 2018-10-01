@@ -65,6 +65,34 @@ namespace WebApplication1.Controllers
             return View(blogPost);
         }
 
+        [HttpPost]
+        public ActionResult Details(string slug, string body)
+        {
+            if (slug == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            var blogPost = db.Posts
+               .Where(p => p.Slug == slug)
+               .FirstOrDefault();
+            if (blogPost == null)
+            {
+                return HttpNotFound();
+            }
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                ViewBag.ErrorMessage = "Comment is required";
+                return View("Details", blogPost);
+            }
+            var comment = new Comment();
+            comment.AuthorId = User.Identity.GetUserId();
+            comment.BlogPostId = blogPost.Id;
+            comment.Created = DateTime.Now;
+            comment.Body = body;
+            db.Comments.Add(comment);
+            db.SaveChanges();
+            return RedirectToAction("Details", new { slug = slug });
+        }
 
         // GET: BlogPosts/Create
         [Authorize(Roles = "Admin")]
@@ -196,6 +224,11 @@ namespace WebApplication1.Controllers
             if (blogPost == null)
             {
                 return HttpNotFound();
+            }
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                TempData["ErrorMessage"] = "Comment is required";
+                return RedirectToAction("Details", new { slug = slug });
             }
             var comment = new Comment();
             comment.AuthorId = User.Identity.GetUserId();

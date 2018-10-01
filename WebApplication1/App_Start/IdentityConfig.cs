@@ -23,7 +23,15 @@ namespace WebApplication1
         {
             // Plug in your email service here to send an email.
             //return Task.FromResult(0);
-            return Task.FromResult(0);
+            var personalEmailService = new PersonalEmailService();
+            var mailMessage = new MailMessage(
+               WebConfigurationManager.AppSettings["username"],
+               message.Destination
+               );
+            mailMessage.Body = message.Body;
+            mailMessage.Subject = message.Subject;
+            mailMessage.IsBodyHtml = true;
+            return personalEmailService.SendAsync(mailMessage);
         }
     }
 

@@ -71,42 +71,47 @@
         <dd>
             @Html.DisplayFor(model => model.Published)
         </dd>
-        @*<dt>
-            @Html.DisplayNameFor(model => model.Comments)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Comments)
-        </dd>*@
+        <div>
+            <dt>Comments:</dt>
+            @foreach (var comment in Model.Comments)
+            {
+                <dd>
+                    @comment.Body 
+                    <br/>- by @comment.Author.DisplayName 
+                    <br/>- @comment.Created.ToString("dd/MM/yyyy HH:mm")
+                </dd>
+                if (User.Identity.IsAuthenticated &&
+                    (User.IsInRole("Admin") || User.IsInRole("Moderator")))
+                {
+                    <dd>
+                    <a href="@Url.Action("Edit", "Comments", new { id = comment.Id } )">Edit Comment</a>
+                    <a href="@Url.Action("Delete", "Comments", new { id = comment.Id })">Delete Comment</a>
+                    </dd>
+                    <hr/>
+                }
+            }
+        </div>
 
     </dl>
 </div>
-<div>
-    Comments:
-    @foreach (var comment in Model.Comments)
-    {
-        <p>
-            @comment.Body - by @comment.Author.DisplayName - @comment.Created.ToString("dd/MM/yyyy HH:mm")
-        </p>
-        if (User.Identity.IsAuthenticated &&
-            (User.IsInRole("Admin") || User.IsInRole("Moderator")))
-        {
-            <a href="@Url.Action("Edit", "Comments", new { id = comment.Id } )">Edit Comment</a>
-            <a href="#">Delete Comment</a>
-        }
-    }
-</div>
+
 @if (User.Identity.IsAuthenticated)
 {
     <div>
-        Submit your comment!
+        <dt>Leave a comment!</dt>
     </div>
     <div>
-        @using (Html.BeginForm("CreateComment", "BlogPosts", FormMethod.Post))
+        @using (Html.BeginForm("Details", "BlogPosts", FormMethod.Post))
         {
             <input type="hidden" name="slug" value="@Model.Slug" />
             <textarea name="Body"></textarea>
+            if (ViewBag.ErrorMessage != null)
+            {
+                <span>@ViewBag.ErrorMessage</span>
+            }
+            <br />
             <input type="submit" value="Submit" />
+            <hr />
         }
     </div>
 }
